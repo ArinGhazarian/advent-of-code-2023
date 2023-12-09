@@ -2,7 +2,7 @@
 
 const char GEAR = '*';
 
-var gearNumbersMap = new Dictionary<(int Row, int Col), HashSet<long>>();
+var gearNumbersMap = new Dictionary<(int Row, int Col), List<long>>();
 
 for (var row = 0; row < input.Length; row++)
 {
@@ -22,7 +22,7 @@ for (var row = 0; row < input.Length; row++)
 
 var sum = gearNumbersMap
     .Where(kvp => kvp.Value.Count == 2)
-    .Sum(kvp => kvp.Value.Aggregate(1L, (prev, cur) => prev * cur));
+    .Sum(kvp => kvp.Value[0] * kvp.Value[1]);
 
 Console.WriteLine(sum);
 
