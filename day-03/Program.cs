@@ -1,23 +1,30 @@
 ﻿var input = File.ReadAllLines("./input.txt");
 
-var partNumbers = new List<long>();
+const char GEAR = '*';
+
+var gearNumbersMap = new Dictionary<(int Row, int Col), HashSet<long>>();
+
 for (var row = 0; row < input.Length; row++)
 {
-    partNumbers.AddRange(FindPartNumbers(input[row], input, row));
-}
-
-Console.WriteLine(partNumbers.Sum());
-
-IEnumerable<long> FindPartNumbers(string line, string[] input, int row)
-{
-    foreach (var (number, position) in ExtractNumbers(line))
+    foreach (var (number, position) in ExtractNumbers(input[row]))
     {
-        if (IsPartNumber(number, input, row, position))
+        foreach (var gear in GetAdjacentGears(number, input, row, position))
         {
-            yield return number;
+            if (!gearNumbersMap.ContainsKey(gear))
+            {
+                gearNumbersMap.Add(gear, []);
+            }
+
+            gearNumbersMap[gear].Add(number);
         }
     }
 }
+
+var sum = gearNumbersMap
+    .Where(kvp => kvp.Value.Count == 2)
+    .Sum(kvp => kvp.Value.Aggregate(1L, (prev, cur) => prev * cur));
+
+Console.WriteLine(sum);
 
 IEnumerable<(long Number, int Position)> ExtractNumbers(string line)
 {
@@ -50,7 +57,7 @@ IEnumerable<(long Number, int Position)> ExtractNumbers(string line)
     return long.TryParse(num, out long result) ? (result, startIndex) : (null, -1);
 }
 
-bool IsPartNumber(long number, string[] input, int row, int col)
+IEnumerable<(int Row, int Col)> GetAdjacentGears(long number, string[] input, int row, int col)
 {
     var numLength = number.ToString().Length;
 
@@ -65,14 +72,10 @@ bool IsPartNumber(long number, string[] input, int row, int col)
         var rightCol = Math.Min(col + numLength + 1, input[row].Length);
         for (int c = leftCol; c < rightCol; c++)
         {
-            if (IsSymbol(input[r][c]))
+            if (input[r][c] is GEAR)
             {
-                return true;
+                yield return (r, c);
             }
         }
     }
-
-    return false;
 }
-
-bool IsSymbol(char c) => !char.IsDigit(c) && c != '.';
